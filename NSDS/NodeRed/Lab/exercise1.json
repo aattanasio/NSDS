@@ -1,0 +1,101 @@
+[
+    {
+        "id": "d2dd44a18f6608b5",
+        "type": "tab",
+        "label": "Exercise 1",
+        "disabled": false,
+        "info": ""
+    },
+    {
+        "id": "191b87303c17b3e7",
+        "type": "openweathermap",
+        "z": "d2dd44a18f6608b5",
+        "name": "Milano's Weather",
+        "wtype": "current",
+        "lon": "",
+        "lat": "",
+        "city": "Milan",
+        "country": "IT",
+        "language": "en",
+        "x": 730,
+        "y": 360,
+        "wires": [
+            [
+                "87e8bfbe09e7b9c3",
+                "62382287dd44af9b"
+            ]
+        ]
+    },
+    {
+        "id": "9ba90d32c0212def",
+        "type": "inject",
+        "z": "d2dd44a18f6608b5",
+        "name": "Trigger Every 1 min",
+        "props": [],
+        "repeat": "60",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "x": 500,
+        "y": 300,
+        "wires": [
+            [
+                "191b87303c17b3e7"
+            ]
+        ]
+    },
+    {
+        "id": "87e8bfbe09e7b9c3",
+        "type": "debug",
+        "z": "d2dd44a18f6608b5",
+        "name": "Show Output",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1160,
+        "y": 360,
+        "wires": []
+    },
+    {
+        "id": "8c93f49d7fd2bb2c",
+        "type": "file",
+        "z": "d2dd44a18f6608b5",
+        "name": "Add to Log",
+        "filename": "temperatureLog.data",
+        "filenameType": "str",
+        "appendNewline": true,
+        "createDir": false,
+        "overwriteFile": "false",
+        "encoding": "none",
+        "x": 1030,
+        "y": 220,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "62382287dd44af9b",
+        "type": "function",
+        "z": "d2dd44a18f6608b5",
+        "name": "Slice, Take only TempC",
+        "func": "let newMsg = { \n    topic: msg.topic,\n    payload: msg.payload.tempc,   \n    _msgid: msg._msgid,\n};\nreturn newMsg;\n",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 960,
+        "y": 300,
+        "wires": [
+            [
+                "8c93f49d7fd2bb2c"
+            ]
+        ]
+    }
+]

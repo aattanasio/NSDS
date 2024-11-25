@@ -1,0 +1,337 @@
+[
+    {
+        "id": "a32cd2cd6d56e30e",
+        "type": "tab",
+        "label": "Flow 1",
+        "disabled": false,
+        "info": "",
+        "env": []
+    },
+    {
+        "id": "03d8fe1494fdaaf5",
+        "type": "mqtt in",
+        "z": "a32cd2cd6d56e30e",
+        "name": "Listen for temperature",
+        "topic": "neslabpolimi/smartcity/milan",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "7129608ccd8809d9",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 140,
+        "y": 100,
+        "wires": [
+            [
+                "d01287ba665f351d"
+            ]
+        ]
+    },
+    {
+        "id": "df006ae0824f347a",
+        "type": "debug",
+        "z": "a32cd2cd6d56e30e",
+        "name": "Output openw",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1000,
+        "y": 200,
+        "wires": []
+    },
+    {
+        "id": "26d0d4383bdfe8d7",
+        "type": "mqtt in",
+        "z": "a32cd2cd6d56e30e",
+        "name": "Listen for k value",
+        "topic": "neslabpolimi/nsds/eval24/k",
+        "qos": "0",
+        "datatype": "auto-detect",
+        "broker": "7129608ccd8809d9",
+        "nl": false,
+        "rap": true,
+        "rh": 0,
+        "inputs": 0,
+        "x": 120,
+        "y": 300,
+        "wires": [
+            [
+                "bc2f61831d42bca5"
+            ]
+        ]
+    },
+    {
+        "id": "d01287ba665f351d",
+        "type": "function",
+        "z": "a32cd2cd6d56e30e",
+        "name": "Sliding window",
+        "func": "let window = context.get(\"window\");\n\nif (msg.payload.fields.temperature != null) {\n    window.push(msg.payload.fields.temperature);\n\n    if (window.length > 10) {\n        window.shift();\n    }\n\n    context.set(\"window\", window);\n\n    msg.payload = window;\n    return msg;\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "// Code added here will be run once\n// whenever the node is started.\ncontext.set(\"window\",[]);",
+        "finalize": "",
+        "libs": [],
+        "x": 400,
+        "y": 100,
+        "wires": [
+            [
+                "00d8c94a3e7233fd",
+                "b6a95a4248e615c6"
+            ]
+        ]
+    },
+    {
+        "id": "b6a95a4248e615c6",
+        "type": "debug",
+        "z": "a32cd2cd6d56e30e",
+        "name": "Output window",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 640,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "258059d401bb97ce",
+        "type": "openweathermap",
+        "z": "a32cd2cd6d56e30e",
+        "name": "Query temperature of Milan",
+        "wtype": "current",
+        "lon": "",
+        "lat": "",
+        "city": "Milan",
+        "country": "IT",
+        "language": "en",
+        "x": 400,
+        "y": 200,
+        "wires": [
+            [
+                "bbdc01bf13874d7a"
+            ]
+        ]
+    },
+    {
+        "id": "17071294f02d637b",
+        "type": "inject",
+        "z": "a32cd2cd6d56e30e",
+        "name": "Every minute",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "60",
+        "crontab": "",
+        "once": true,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 120,
+        "y": 200,
+        "wires": [
+            [
+                "258059d401bb97ce"
+            ]
+        ]
+    },
+    {
+        "id": "f04161cd77e41016",
+        "type": "debug",
+        "z": "a32cd2cd6d56e30e",
+        "name": "Output avg",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 850,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "bbdc01bf13874d7a",
+        "type": "function",
+        "z": "a32cd2cd6d56e30e",
+        "name": "Extract temperature (Kelvin)",
+        "func": "let newPayload = msg.payload.tempk;\nflow.set(\"openwtemp\", newPayload);\nmsg.payload = newPayload;\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 720,
+        "y": 200,
+        "wires": [
+            [
+                "df006ae0824f347a"
+            ]
+        ]
+    },
+    {
+        "id": "bc2f61831d42bca5",
+        "type": "function",
+        "z": "a32cd2cd6d56e30e",
+        "name": "Save k value",
+        "func": "flow.set(\"k\",msg.payload);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 350,
+        "y": 300,
+        "wires": [
+            [
+                "c4f52967459dbb66"
+            ]
+        ]
+    },
+    {
+        "id": "c4f52967459dbb66",
+        "type": "debug",
+        "z": "a32cd2cd6d56e30e",
+        "name": "Output k",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 560,
+        "y": 300,
+        "wires": []
+    },
+    {
+        "id": "00d8c94a3e7233fd",
+        "type": "function",
+        "z": "a32cd2cd6d56e30e",
+        "name": "Compute avg",
+        "func": "let array = msg.payload;\n\nlet avg = array.reduce((sum, t) => sum + t, 0) / array.length;\n\nmsg.payload = avg.toFixed(2);\nreturn msg;",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 630,
+        "y": 100,
+        "wires": [
+            [
+                "f04161cd77e41016",
+                "32440795a2b63966"
+            ]
+        ]
+    },
+    {
+        "id": "32440795a2b63966",
+        "type": "function",
+        "z": "a32cd2cd6d56e30e",
+        "name": "Compare",
+        "func": "let owtemp = flow.get(\"openwtemp\");\nlet diff = Math.abs(owtemp - msg.payload);\nif (diff > flow.get(\"k\")) {\n    msg.payload = \"Temperature data is not coherent!\";\n    return msg;\n}",
+        "outputs": 1,
+        "timeout": 0,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 840,
+        "y": 100,
+        "wires": [
+            [
+                "206cf9ee9d45581d",
+                "cf1abd8e1bee802d"
+            ]
+        ]
+    },
+    {
+        "id": "206cf9ee9d45581d",
+        "type": "debug",
+        "z": "a32cd2cd6d56e30e",
+        "name": "Output compare result (only non-coherent)",
+        "active": false,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1150,
+        "y": 40,
+        "wires": []
+    },
+    {
+        "id": "cf1abd8e1bee802d",
+        "type": "mqtt out",
+        "z": "a32cd2cd6d56e30e",
+        "name": "Send alarm msg",
+        "topic": "neslabpolimi/nsds/eval24/alarm",
+        "qos": "0",
+        "retain": "",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "7129608ccd8809d9",
+        "x": 1060,
+        "y": 100,
+        "wires": []
+    },
+    {
+        "id": "7129608ccd8809d9",
+        "type": "mqtt-broker",
+        "name": "MQTT broker",
+        "broker": "mqtt.neslab.it",
+        "port": "3200",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "3",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthRetain": "false",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closeRetain": "false",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willRetain": "false",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    }
+]
